@@ -1,127 +1,138 @@
+var numRows;
+var numCols;
+var numItems;
+var currCell;
+var bufferColor;
+var nameList;
+var gameType;
+var clickCount;
+var correctCount;
+
 function maketable(itemsPerRow,imgTitle,urlTitle) {
-	var rows = Math.ceil(get_images(imgTitle, urlTitle).length / itemsPerRow);
+	numRows = Math.ceil(imgTitle.length / itemsPerRow);
+	numCols = itemsPerRow;
     
-	for (i=0;i<rows;i++) {
+	for (i=0; i<numRows; i++) {
         $('table.gameboard').append('<tr class="gameboard" ></tr>');
     }
-	
-    for (i=0;i<itemsPerRow;i++) {
-			$('tr.gameboard').append('<td class="gameboard" ><span class="name"></span><br/><img style="display:none;" /></td>');
+    for (i=0; i<numCols; i++) {
+    	$('tr.gameboard').append('<td class="gameboard" ><span class="name"></span><br/><img style="display:none;" /></td>');
     }
-	
 }
-
 
 function reset_game(imgTitle,urlTitle) {
     $('span.winner').hide();
     $('span.refresh').hide();
+
+	clickCount = correctCount = 0;
 	
-    deal_images(imgTitle,urlTitle);
-	
-    randname("reset",imgTitle,urlTitle);            
+    // parse game type
+    try {
+    	gameType = window.location.href.split('?')[1].split('&')[0];
+    }
+    catch (err) {
+    	gameType = 'faces'
+    }
+
+    // shuffle and deal names
+    nameList = [];
+	for (var i = 1; i < imgTitle.length; i++)
+	{
+        nameList.push([imgTitle[i],urlTitle[i]]);
+	}
+    numItems = nameList.length;
+    nameList = shuffle(nameList);
+    deal_images();
+	nameList = shuffle(nameList);
+    randname();
+
     $('span.queryline').show();
 }
 
-
 // Randomize the names and faces and deal them into the table
-function deal_images(imgTitle,urlTitle) {
-	
-    var nameList = get_images(imgTitle,urlTitle);	
+function deal_images() {
     var span = $("span.name");
     var img = $("img");
-    
-    nameList = shuffle(nameList);
 	
-    for(i=0;i<nameList.length;i++){	
-	
-			span[i].innerHTML = nameList[i][0];
-			$(span[i]).attr("tag", nameList[i][0]);
-			$(span[i]).parent("td").attr("tag", nameList[i][0]);
-			$(span[i]).parent("td").attr("guessed", false);
-			
-			img[i].src = nameList[i][1];
-			$(img[i]).attr("tag", nameList[i][0]);
-			
-			if (format_switch() == "faces") {
-				$(img[i]).css("display", "none");
-				$(span[i]).css("display", "inline");
-			}
-			else {
-				$(img[i]).css("display", "inline");
-				$(span[i]).css("display", "none");
-			}
+    for(i=0;i<numItems;i++){
+		span[i].innerHTML = nameList[i][0];
+		$(span[i]).attr("tag", nameList[i][0]);
+		$(span[i]).parent("td").attr("tag", nameList[i][0]);
+		$(span[i]).parent("td").attr("guessed", false);
+		
+		img[i].src = nameList[i][1];
+		$(img[i]).attr("tag", nameList[i][0]);
+		
+		if (gameType == "faces") {
+			$(img[i]).css("display", "none");
+			$(span[i]).css("display", "inline");
+		}
+		else {
+			$(img[i]).css("display", "inline");
+			$(span[i]).css("display", "none");
+		}
     }   
 	
-	// shades in the empty boxes
-	var totalBoxes = Math.ceil(get_images(imgTitle,urlTitle).length/5) * 5;
-	
-	
-	for (i = get_images(imgTitle,urlTitle).length; i < totalBoxes+1; i++) {
+	for (i = numItems; i < numRows * numCols; i++) {
 		$(span[i]).parent("td").attr('bgcolor', '#d3d3d3');
 	}
 	            
 }
 
-
-var bufferColor;
-
 function keypress(event) {
-	var inc = 0;
-	nRows = 4;
-	nCols = 5;
-	var currCell = keypress.currCell || 0;		
-	
 	t = $('td.gameboard');
-	td = t[currCell];
-	td.bgColor = bufferColor;
-	
-	key = event.which;
-	if ((key==37) & (currCell % nCols > 0)) {
-		// left
-		inc = -1;
-	} else if  ((key==38) & (currCell >= nCols)) {
-		// up
-		inc = -nCols;
-	} else if  ((key==39) & (currCell % nCols < 3))  {
-		// right
-		inc = 1;
-	} else if  ((key==40) & (currCell < nCols*nRows - nCols)) {
-		// down
-		inc = nCols;
-	} else if (key==13) {
-		// return key pressed. check the answer.
-		check_answer(td.attr("tag"),imgTitle,urlTitle);
-		return;
-	} else {
-		return;
+	td = t[currCell || 0];
+	if (currCell == null) {
+		currCell = 0;
 	}
+	else
+	{
+		td.bgColor = bufferColor;
+		var currRow = Math.floor(currCell / numCols);
+		var currCol = currCell % numCols;
 
-	if (inc > 0) {
-		currCell += inc;
-		if (currCell > nRows*nCols - 1) {
-			currCell -= nRows*nCols;
-		} else if (currCell < 0) {
-			currCell += nRows*nCols;
+
+		key = event.which;
+		if (key==37) { // left
+			currCell = currCell - 1;
+			if (Math.floor(currCell / numCols) < currRow)
+				currCell = Math.min(currCell + numCols, numItems - 1);
+		} else if  (key==38) { // up
+			currCell = currCell - numCols;
+			if (currCell < 0)
+				currCell = Math.floor((numItems - currCol - 1) / numCols) * numCols + currCol;
+		} else if  (key==39) { // right
+			currCell = currCell + 1;
+			if (Math.floor(currCell / numCols) > currRow || currCell >= numItems)
+				currCell = currCell - currCol - 1;
+		} else if  (key==40) { // down
+			currCell = currCell + numCols;
+			if (currCell >= numItems)
+				currCell = currCol;
+		} else if (key==13) { // return key
+			td.bgColor = "#FFC0C0";
+			check_answer(td.getAttribute("tag"));
+			return;
+		} else {
+			return;
 		}
-
-		keypress.currCell = currCell;
-		td = t[keypress.currCell];
-		bufferColor = td.bgColor;
-		td.bgColor = "#FFC0C0";
 	}
+	td = t[currCell];
+	bufferColor = td.bgColor;
+	td.bgColor = "#FFC0C0";
 }
 
 
-function check_answer(tag,imgTitle,urlTitle) {
+function check_answer(tag) {
 	
 	if (!timerRunning) {
         InitializeTimer();
     }
-    var count = clickcounter();
-    $('span.counter').html(count);
+    ++clickCount;
+    $('span.counter').html(clickCount);
     
     var str;
-    if (format_switch()=="faces") {
+    if (gameType=="faces") {
         str = 'img[tag="' + tag + '"]';
     } else {
         str = 'span.name[tag="' + tag + '"]';
@@ -137,11 +148,11 @@ function check_answer(tag,imgTitle,urlTitle) {
         choice.parent('td').attr('guessed',true);
         
 		//Progress Bar
-		updateProgress(get_images(imgTitle,urlTitle).length);
+		updateProgress(numItems);
 		
 		//Correct Counter
-		var correctCount = correctCounter();
-    	$('span.correct').html(correctCount+"/"+(get_images(imgTitle,urlTitle).length));
+		correctCount = ++correctCount || 1;
+    	$('span.correct').html(correctCount+"/"+(numItems));
 		
 		
         if ($('td[guessed=false]').length==0) {
@@ -152,13 +163,15 @@ function check_answer(tag,imgTitle,urlTitle) {
             $('span.refresh').fadeIn(2000);
         } else {
             // You still have more names to guess
-            randname("next",imgTitle,urlTitle);
+            randname();
         }
+		return true;
         
     } else {
         // You guessed incorrectly
         choice.css("color","#FF0000");      
         choice.fadeOut(1000);
+		return false;
     }
 }
 
@@ -173,48 +186,14 @@ function updateProgress(imgLength) {
   }
 }
 
-
-function clickcounter() {
-    clickcounter.count = ++clickcounter.count || 1;
-    return (clickcounter.count);
-}
-
-
-function correctCounter() {
-    correctCounter.correctCount = ++correctCounter.correctCount || 1;
-    return (correctCounter.correctCount);
-}
-
-
-function format_switch() {
-    // return either "faces" or "names" depending on which game you want to play
-    // input = "faces";
-    var urlstr = window.location.href;
-    var urlFirstSplit = urlstr.split('?');
-	
-	var urlparts = urlFirstSplit[1].split('&');
-	
-    if ((urlparts.length>0) && (urlparts[0]=="faces")) {
-        return("faces");
-    } else {
-        return("names");
-    }
-}
-
-
-function randname(option,imgTitle,urlTitle) {
-
-    if (option=="reset") {
-        randname.list = get_images(imgTitle,urlTitle);
-        randname.list = shuffle(randname.list,imgTitle,urlTitle);
-    }
-    newname = randname.list.shift();
+function randname() {
+    newname = nameList.shift();
     if (newname!=undefined) {
         var q = $('div.query');
         $(q[0]).attr("tag",newname[0]);
 		
 		
-		if (format_switch()=="faces") {
+		if (gameType=="faces") {
             $(q[0]).html('<img src="' + newname[1] + '" />');
         } else {
             $(q[0]).html(newname[0]);
