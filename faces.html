@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html> 
+    <head> 
+        <title>Name That MathWorker !</title> 
+
+        <link rel="stylesheet" href="faces.css" type="text/css" />
+		<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script> 
+  		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+		
+		<script type="text/javascript" src="faces.js"></script>
+        <script type="text/javascript" src="namelist.js"></script>   
+     
+    </head> 
+ 
+    <body> 
+    	
+        <script>                        
+            $(document).ready(function(){
+				
+				var url= document.URL;
+				var decodedUrl = url.replace(/%20/g,' ');
+				var splitResult = decodedUrl.split("titles=");
+                var finalSplit = splitResult[1].split(",&url=");
+				var imgTitleArray= finalSplit[0];
+				var imgTitle = imgTitleArray.split(",");
+				var urlTitleArray= finalSplit [1];
+				var urlAnchor = urlTitleArray.split(",");						
+				var urlTitle = new Array();
+				
+				$(document).keydown(function(event) { keypress(event); });
+				
+				for(i=0;i<urlAnchor.length;i++)
+				{
+					var str = urlAnchor[i];
+					var rep = str.replace(/faces/i,"thumbnails");
+					var sub = rep.substr(53);
+					var  name = sub.substr(0,sub.length - 4);
+					var finalName = name+"_tn_large.jpg";
+					
+					urlTitle[i] = rep.replace(sub,finalName);	
+				}
+				
+				if(imgTitle.length < 25 ) {
+					tableColumn = 5;
+				}
+				else if(imgTitle.length > 24 && imgTitle.length <31 ) {
+					tableColumn = 6;
+				} else {
+					tableColumn = 7;
+				}		 
+			    maketable(tableColumn,imgTitle,urlTitle);				
+				
+				reset_game(imgTitle,urlTitle);
+                
+                $("td").click(function(event){
+                    if ($(this).attr("guessed")=="false") {
+						check_answer($(this).attr("tag"),imgTitle,urlTitle);
+                        }
+                });
+				
+                $("a.refresh").click(function(event){
+					
+                    var urlparts = window.location.href.split('?');
+					 
+					secondSplitUrl = urlparts[1].split('&');
+					
+                    window.location = urlparts[0] + '?' + $(this).attr("format")+
+						'&'+secondSplitUrl[1]+'&'+secondSplitUrl[2];
+                    event.preventDefault();
+					
+                });
+
+			});
+        </script> 
+		
+	        <table class="header" >
+	        <tr>
+	            <td class="header"><span class="title">Name That<br/>MathWorker</span></td>
+				
+	            <td class="header" width="600px">
+	                <center>
+	                <span class="queryline">
+	                    Find this person:<br/>
+	                    <div class="query" ></div>
+	                </span>
+	                <span class="winner" style="display:none;">
+	                    You win! Play again?<br/>
+	                </span> 
+	                <span class="refresh" style="display:none;">
+	                    <a class="refresh" format="names" href="">Prompt with names</a><br/>
+	                    <a class="refresh" format="faces" href="">Prompt with faces</a>
+	                </span>
+	                </center>
+	            </td>
+	            <td class="header" style="float:right;">
+	                Number of Clicks: <span class="counter">0</span><br/> 
+	                Time: <span class="timer">0</span><br/>
+					Correct: <span class="correct">0</span><br/>
+					<div class="selector" style="font-size:62.5%;width:100%;"> </div>
+	            </td>
+	        </tr>
+	        </table>
+	
+			<center>
+	            <table class="gameboard" width="80%"></table> 
+	        </center>
+
+    </body> 
+</html> 

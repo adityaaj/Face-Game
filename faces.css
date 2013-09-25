@@ -1,0 +1,43 @@
+body {
+    font-family:Tahoma; 
+    font-size:20px;
+    background-color:#F0F0FF;
+}
+
+img {
+    height:120px;
+}
+
+span.title {
+    font-size:28px;
+}
+
+div.query {
+    width:160px;
+    margin:8px;
+    background-color:#F0F0D0;
+    border:thin solid gray;
+}
+
+table.header {
+    width:100%;
+}
+
+td.header {
+    vertical-align:top;
+    padding:8px;                
+}
+
+table.gameboard {
+    border-collapse:collapse;
+    background-color:#FFFFFF;
+}
+
+td.gameboard {
+    border:thin solid gray;
+    padding:8px;
+    height:160px;
+    width:160px;
+    vertical-align:top;
+    text-align:center;
+}
