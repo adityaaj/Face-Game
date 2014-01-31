@@ -35,6 +35,7 @@ table.gameboard {
 
 td.gameboard {
     border:thin solid gray;
+    border-width:2px;
     padding:8px;
     height:160px;
     width:160px;
