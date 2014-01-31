@@ -87,39 +87,39 @@ function keypress(event) {
 	}
 	else
 	{
-		td.bgColor = bufferColor;
+		td.style.backgroundColor = bufferColor;
 		var currRow = Math.floor(currCell / numCols);
 		var currCol = currCell % numCols;
-
 
 		key = event.which;
 		if (key==37) { // left
 			currCell = currCell - 1;
 			if (Math.floor(currCell / numCols) < currRow)
-				currCell = Math.min(currCell + numCols, numItems - 1);
+				currCell = currCell + 1;
 		} else if  (key==38) { // up
 			currCell = currCell - numCols;
 			if (currCell < 0)
-				currCell = Math.floor((numItems - currCol - 1) / numCols) * numCols + currCol;
+				currCell = currCell + numCols;
 		} else if  (key==39) { // right
 			currCell = currCell + 1;
 			if (Math.floor(currCell / numCols) > currRow || currCell >= numItems)
-				currCell = currCell - currCol - 1;
+				currCell = currCell - 1;
 		} else if  (key==40) { // down
 			currCell = currCell + numCols;
 			if (currCell >= numItems)
-				currCell = currCol;
+				currCell = currCell - numCols;
 		} else if (key==13) { // return key
-			td.bgColor = "#FFC0C0";
+			td.style.backgroundColor =  "#BCED91";
 			check_answer(td.getAttribute("tag"));
+            bufferColor = td.style.backgroundColor;     //cache the color of correct answers
 			return;
 		} else {
 			return;
 		}
 	}
 	td = t[currCell];
-	bufferColor = td.bgColor;
-	td.bgColor = "#FFC0C0";
+	bufferColor = td.style.backgroundColor;
+	td.style.backgroundColor = "#BCED91";
 }
 
 
@@ -169,6 +169,7 @@ function check_answer(tag) {
         
     } else {
         // You guessed incorrectly
+        choice.parent('td').css('background-color','#FFFFFF');   //if incorrect make background white -Aditya
         choice.css("color","#FF0000");      
         choice.fadeOut(1000);
 		return false;
